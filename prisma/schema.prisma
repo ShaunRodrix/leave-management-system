@@ -1,0 +1,67 @@
+// Prisma schema — single source of truth for the database.
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  EMPLOYEE
+  ADMIN
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  EARNED
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  passwordHash String
+  role         Role           @default(EMPLOYEE)
+  createdAt    DateTime       @default(now())
+
+  // Leaves this employee applied for
+  leaves  LeaveRequest[] @relation("EmployeeLeaves")
+  // Leaves this admin reviewed
+  reviews LeaveRequest[] @relation("ReviewerLeaves")
+
+  @@map("users")
+}
+
+model LeaveRequest {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  user      User        @relation("EmployeeLeaves", fields: [userId], references: [id], onDelete: Cascade)
+
+  type      LeaveType
+  startDate DateTime    @db.Date
+  endDate   DateTime    @db.Date
+  // Inclusive day count, computed once at apply time and stored for reporting
+  days      Int
+  reason    String
+
+  status       LeaveStatus @default(PENDING)
+  reviewedById Int?
+  reviewedBy   User?       @relation("ReviewerLeaves", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  createdAt    DateTime    @default(now())
+
+  @@index([userId, status])
+  @@index([status, startDate, endDate])
+  @@map("leave_requests")
+}
