@@ -29,6 +29,7 @@ enum LeaveStatus {
 
 model User {
   id           Int            @id @default(autoincrement())
+  employeeId   Int            @unique
   name         String
   email        String         @unique
   passwordHash String

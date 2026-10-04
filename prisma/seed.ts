@@ -39,25 +39,30 @@ function demoPassword(name: string): string {
 async function main() {
   const admin = await db.user.upsert({
     where: { email: "admin@company.com" },
-    update: { name: "Admin", passwordHash: await bcrypt.hash("Admin@123", 10) },
+    update: { name: "Admin", passwordHash: await bcrypt.hash("Admin@123", 10), employeeId: 1000 },
     create: {
       name: "Admin",
       email: "admin@company.com",
       passwordHash: await bcrypt.hash("Admin@123", 10),
       role: "ADMIN",
+      employeeId: 1000,
     },
   });
 
-  const employees = await Promise.all(
-    EMPLOYEES.map((e) => {
-      const passwordHash = bcrypt.hashSync(demoPassword(e.name), 10);
-      return db.user.upsert({
-        where: { email: e.email },
-        update: { name: e.name, passwordHash },
-        create: { ...e, passwordHash, role: "EMPLOYEE" },
-      });
-    })
-  );
+  // Sequential, not Promise.all: concurrent upserts can collide on the
+  // unique employeeId unique index while old values are still held.
+  const employees = [];
+  for (let i = 0; i < EMPLOYEES.length; i++) {
+    const e = EMPLOYEES[i];
+    const passwordHash = bcrypt.hashSync(demoPassword(e.name), 10);
+    const employeeId = 1001 + i;
+    const user = await db.user.upsert({
+      where: { email: e.email },
+      update: { name: e.name, passwordHash, employeeId },
+      create: { ...e, passwordHash, role: "EMPLOYEE", employeeId },
+    });
+    employees.push(user);
+  }
 
   // Leaves are always relative to "today", so wipe and recreate on every
   // seed run — keeps the demo data live instead of drifting as days pass.

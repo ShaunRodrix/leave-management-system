@@ -38,7 +38,7 @@ export async function getBalancesForUser(userId: number): Promise<{
 export async function getAllLeaves() {
   return db.leaveRequest.findMany({
     include: {
-      user: { select: { id: true, name: true, email: true } },
+      user: { select: { id: true, name: true, email: true, employeeId: true } },
     },
     orderBy: { createdAt: "desc" },
   });

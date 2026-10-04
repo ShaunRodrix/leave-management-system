@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Loader2, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -34,7 +35,7 @@ type AdminLeave = {
   reason: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: Date | string;
-  user: { id: number; name: string; email: string };
+  user: { id: number; name: string; email: string; employeeId: number };
 };
 
 const FILTERS = ["ALL", "PENDING", "APPROVED", "REJECTED"] as const;
@@ -54,14 +55,38 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("ALL");
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  /* ⌘K / Ctrl+K jumps to search */
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const q = query.trim().toLowerCase();
+  const searched = q
+    ? leaves.filter(
+        (l) =>
+          String(l.user.employeeId).includes(q) ||
+          l.user.name.toLowerCase().includes(q) ||
+          l.user.email.toLowerCase().includes(q)
+      )
+    : leaves;
 
   const visible =
-    filter === "ALL" ? leaves : leaves.filter((l) => l.status === filter);
+    filter === "ALL" ? searched : searched.filter((l) => l.status === filter);
 
   const counts = Object.fromEntries(
     FILTERS.map((f) => [
       f,
-      f === "ALL" ? leaves.length : leaves.filter((l) => l.status === f).length,
+      f === "ALL" ? searched.length : searched.filter((l) => l.status === f).length,
     ])
   ) as Record<(typeof FILTERS)[number], number>;
 
@@ -89,32 +114,51 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
 
   return (
     <div className="grid gap-4">
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as (typeof FILTERS)[number])}>
-        <TabsList>
-          {FILTERS.map((f) => (
-            <TabsTrigger key={f} value={f}>
-              {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
-              <span
-                className={`ml-1 text-xs tabular-nums ${
-                  f === "PENDING" && counts[f] > 0 ? "font-medium text-amber-600" : "text-zinc-400"
-                }`}
-              >
-                {counts[f]}
-              </span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as (typeof FILTERS)[number])}>
+          <TabsList>
+            {FILTERS.map((f) => (
+              <TabsTrigger key={f} value={f}>
+                {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+                <span
+                  className={`ml-1 text-xs tabular-nums ${
+                    f === "PENDING" && counts[f] > 0 ? "font-medium text-amber-600" : "text-zinc-400"
+                  }`}
+                >
+                  {counts[f]}
+                </span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        <div className="relative w-full sm:w-64">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+          <Input
+            ref={searchRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by ID or name…"
+            className="pr-12 pl-8"
+          />
+          <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-zinc-400">
+            ⌘K
+          </kbd>
+        </div>
+      </div>
 
       {visible.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-zinc-500">
-          No {filter === "ALL" ? "" : filter.toLowerCase() + " "}requests.
+          {q
+            ? `No results for "${query}".`
+            : `No ${filter === "ALL" ? "" : filter.toLowerCase() + " "}requests.`}
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
           <Table>
             <TableHeader>
               <TableRow className="bg-zinc-50/50">
+                <TableHead className="w-14">ID</TableHead>
                 <TableHead>Employee</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Dates</TableHead>
@@ -127,6 +171,9 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
             <TableBody>
               {visible.map((leave) => (
                 <TableRow key={leave.id}>
+                  <TableCell className="tabular-nums text-zinc-500">
+                    {leave.user.employeeId}
+                  </TableCell>
                   <TableCell>
                     <div className="font-medium">{leave.user.name}</div>
                     <div className="text-xs text-zinc-400">{leave.user.email}</div>
