@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Local planning docs (not part of the product)
 docs/
+
+# Local UI experiments (never part of the product)
+/experiments
