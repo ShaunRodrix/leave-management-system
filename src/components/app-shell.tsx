@@ -26,24 +26,24 @@ export function AppShell({
   return (
     <div className="flex min-h-screen flex-col">
       <BfcacheReload />
-      <header className="sticky top-0 z-10 border-b border-white/10 bg-zinc-900">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-6">
+      <header className="sticky top-0 z-10 border-b border-zinc-200 bg-zinc-100">
+        <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center gap-3 px-6">
           <div className="flex items-center gap-2.5">
-            <span className="flex size-7 items-center justify-center rounded-md border border-white/15 bg-white/10 text-white">
+            <span className="flex size-7 items-center justify-center rounded-md bg-zinc-900 text-white">
               <CalendarDays className="size-4" />
             </span>
-            <span className="text-[15px] font-semibold tracking-tight text-white">
+            <span className="text-[15px] font-semibold tracking-tight text-zinc-900">
               LeaveEase
             </span>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <span className="flex items-center gap-2.5" title={name}>
-              <span className="flex size-8 items-center justify-center rounded-full border border-white/15 bg-white/10 text-[12.5px] font-semibold text-white">
+              <span className="flex size-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-[12.5px] font-semibold text-zinc-900">
                 {handle.charAt(0).toUpperCase()}
               </span>
               <span className="leading-tight">
-                <span className="block text-[13px] font-medium text-white">{displayName}</span>
-                <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-white/45">
+                <span className="block text-[13px] font-medium text-zinc-900">{displayName}</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-zinc-400">
                   {role}
                 </span>
               </span>
@@ -52,7 +52,7 @@ export function AppShell({
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-6 py-8">{children}</main>
     </div>
   );
 }
