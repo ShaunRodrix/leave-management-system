@@ -261,18 +261,16 @@
 .d2 { --rd: 0.16s; }
 .d3 { --rd: 0.22s; }
 
-/* overview chart: line draws itself, area fades, points pop in order */
-@keyframes ov-draw {
+/* overview chart: curtain reveals line + area left to right, points pop after.
+   NOTE: deliberately NOT a stroke-dash draw — non-scaling-stroke makes the
+   browser measure dashes in stretched screen pixels and ignore pathLength,
+   so the reveal stopped ~80% in. clip-path is immune to stroke measuring. */
+@keyframes ov-reveal {
   from {
-    stroke-dashoffset: 100;
+    clip-path: inset(0 100% 0 0);
   }
   to {
-    stroke-dashoffset: 0;
-  }
-}
-@keyframes ov-fade {
-  to {
-    opacity: 1;
+    clip-path: inset(0 0 0 0);
   }
 }
 @keyframes ov-pop {
@@ -294,13 +292,8 @@
     opacity: 0.55;
   }
 }
-.ov-line {
-  stroke-dasharray: 100;
-  animation: ov-draw 0.7s ease-out 0.35s both;
-}
-.ov-area {
-  opacity: 0;
-  animation: ov-fade 0.5s ease-out 0.7s forwards;
+.ov-reveal {
+  animation: ov-reveal 0.7s ease-out 0.35s both;
 }
 .ov-pt {
   opacity: 0;
@@ -313,15 +306,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pop,
-  .ov-pt,
-  .ov-area {
+  .ov-pt {
     animation: none;
     opacity: 1;
     transform: none;
   }
-  .ov-line {
+  .ov-reveal {
     animation: none;
-    stroke-dasharray: none;
   }
   .ov-pulse {
     animation: none;

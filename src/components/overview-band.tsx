@@ -112,7 +112,7 @@ export function OverviewBand({ data }: { data: Overview }) {
             />
 
             <svg
-              className="absolute inset-0 h-full w-full"
+              className="ov-reveal absolute inset-0 h-full w-full"
               viewBox={`0 0 ${W} ${H}`}
               preserveAspectRatio="none"
               aria-hidden="true"
@@ -123,16 +123,14 @@ export function OverviewBand({ data }: { data: Overview }) {
                   <stop offset="100%" stopColor="#18181b" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path className="ov-area" d={area} fill="url(#ov-area)" />
+              <path d={area} fill="url(#ov-area)" />
               <path
-                className="ov-line"
                 d={line}
                 fill="none"
                 stroke="#18181b"
                 strokeWidth="2"
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
-                pathLength={100}
               />
             </svg>
 
