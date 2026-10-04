@@ -131,7 +131,7 @@ export function ApplyLeaveForm({
             </div>
           </div>
           {days > 0 && (
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-zinc-500 animate-in fade-in slide-in-from-bottom-1 duration-150 ease-out motion-reduce:animate-none">
               {days} day{days === 1 ? "" : "s"}
               {after !== null && after < 0 && (
                 <span className="font-medium text-amber-600">

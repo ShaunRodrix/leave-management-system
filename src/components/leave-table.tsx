@@ -24,7 +24,7 @@ export function LeaveTable({ leaves }: { leaves: LeaveRow[] }) {
   if (leaves.length === 0) {
     return (
       <div className="h-full rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-zinc-500">
-        No leave applications yet.
+        No leave applications yet. Submit your first request with the form.
       </div>
     );
   }

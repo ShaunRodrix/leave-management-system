@@ -29,11 +29,9 @@ export default async function DashboardPage() {
       <div className="grid gap-8">
         <section className="grid gap-4">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">
-              Your leave balance
-            </h1>
+            <h1 className="text-xl font-semibold tracking-tight">Your leave</h1>
             <p className="text-sm text-zinc-500">
-              Current year entitlements, updated as requests are approved
+              Apply for time off and track your requests
             </p>
           </div>
           <BalanceCards balances={balances} pending={pending} />
