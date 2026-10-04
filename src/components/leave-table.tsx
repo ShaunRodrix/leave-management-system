@@ -23,14 +23,14 @@ export type LeaveRow = {
 export function LeaveTable({ leaves }: { leaves: LeaveRow[] }) {
   if (leaves.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-zinc-500">
+      <div className="h-full rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center text-sm text-zinc-500">
         No leave applications yet.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+    <div className="h-full overflow-hidden rounded-xl border border-zinc-200 bg-white">
       <Table>
         <TableHeader>
           <TableRow className="bg-zinc-50/50">

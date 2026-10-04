@@ -41,7 +41,7 @@ export default async function DashboardPage() {
 
         <section className="grid gap-6 lg:grid-cols-[380px_1fr]">
           <ApplyLeaveForm />
-          <div className="grid gap-4">
+          <div className="grid gap-4 lg:grid-rows-[auto_1fr]">
             <h2 className="text-base font-semibold tracking-tight">
               Your applications
             </h2>
