@@ -59,11 +59,9 @@ async function main() {
     })
   );
 
-  // Skip leave creation if already seeded
-  if ((await db.leaveRequest.count()) > 0) {
-    console.log("Leave requests already seeded — skipping.");
-    return;
-  }
+  // Leaves are always relative to "today", so wipe and recreate on every
+  // seed run — keeps the demo data live instead of drifting as days pass.
+  await db.leaveRequest.deleteMany({});
 
   const [shaun, aviston, rahul, ananya, annia] = employees;
 
@@ -85,7 +83,8 @@ async function main() {
     // Aviston — mixed history
     { userId: aviston.id, type: "SICK", start: -9, end: -9, status: "APPROVED", reason: "Migraine" },
     { userId: aviston.id, type: "CASUAL", start: -4, end: -3, status: "REJECTED", reason: "Personal errand" },
-    { userId: aviston.id, type: "CASUAL", start: 6, end: 6, reason: "Bank paperwork" },
+    { userId: aviston.id, type: "CASUAL", start: 3, end: 3, reason: "Bank paperwork" },
+    { userId: aviston.id, type: "SICK", start: 5, end: 6, status: "APPROVED", reason: "Migraine" },
     { userId: aviston.id, type: "EARNED", start: 30, end: 34, reason: "Wedding in the family" },
 
     // Rahul — pending queue for the admin dashboard
@@ -95,10 +94,13 @@ async function main() {
 
     // Ananya — mostly approved, one pending
     { userId: ananya.id, type: "EARNED", start: -32, end: -28, status: "APPROVED", reason: "Travel abroad" },
-    { userId: ananya.id, type: "SICK", start: 4, end: 5, reason: "Dental surgery recovery" },
     { userId: ananya.id, type: "CASUAL", start: -2, end: -1, status: "APPROVED", reason: "Sister's graduation" },
+    { userId: ananya.id, type: "SICK", start: 1, end: 2, status: "APPROVED", reason: "Dental surgery recovery" },
+    { userId: ananya.id, type: "CASUAL", start: 3, end: 5, status: "APPROVED", reason: "Trip with sister" },
+    { userId: ananya.id, type: "EARNED", start: 21, end: 25, reason: "Annual vacation" },
 
     // Annia
+    { userId: annia.id, type: "CASUAL", start: 5, end: 6, reason: "Apartment viewing" },
     { userId: annia.id, type: "CASUAL", start: 9, end: 10, status: "REJECTED", reason: "Weekend trip" },
     { userId: annia.id, type: "EARNED", start: -45, end: -43, status: "APPROVED", reason: "Personal" },
   ];

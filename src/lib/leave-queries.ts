@@ -44,21 +44,94 @@ export async function getAllLeaves() {
   });
 }
 
-export async function getTeamStats() {
-  const todayUtc = new Date();
-  todayUtc.setUTCHours(0, 0, 0, 0);
+export type OverviewDay = {
+  date: Date;
+  isWeekend: boolean;
+  approved: number;
+  pending: number;
+};
 
-  const [pendingCount, onLeaveToday, totalEmployees] = await Promise.all([
-    db.leaveRequest.count({ where: { status: "PENDING" } }),
-    db.leaveRequest.count({
-      where: {
-        status: "APPROVED",
-        startDate: { lte: todayUtc },
-        endDate: { gte: todayUtc },
-      },
-    }),
-    db.user.count({ where: { role: "EMPLOYEE" } }),
-  ]);
+export type Overview = {
+  pendingCount: number;
+  onLeaveToday: number;
+  totalEmployees: number;
+  /** Requests starting this calendar year, by status, plus approved day total */
+  year: { approved: number; pending: number; rejected: number; daysGranted: number };
+  /** Rolling window: today + 6 days, how many people are off each day.
+      Counts only — never names — so it scales to any headcount. */
+  week: OverviewDay[];
+};
 
-  return { pendingCount, onLeaveToday, totalEmployees };
+/**
+ * Everything the admin overview band shows, in one round-trip: headline
+ * counts, this-year composition, and the 7-day out chart (counts only,
+ * no personal data, so it holds at any headcount).
+ */
+export async function getOverview(): Promise<Overview> {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const lastDay = new Date(today);
+  lastDay.setUTCDate(lastDay.getUTCDate() + 6);
+  const yearStart = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1));
+
+  const [weekLeaves, yearLeaves, employees, pendingCount, onLeaveToday] =
+    await Promise.all([
+      db.leaveRequest.findMany({
+        where: {
+          status: { in: ["APPROVED", "PENDING"] },
+          startDate: { lte: lastDay },
+          endDate: { gte: today },
+        },
+        select: { startDate: true, endDate: true, status: true },
+      }),
+      db.leaveRequest.findMany({
+        where: { startDate: { gte: yearStart } },
+        select: { status: true, days: true },
+      }),
+      db.user.count({ where: { role: "EMPLOYEE" } }),
+      db.leaveRequest.count({ where: { status: "PENDING" } }),
+      db.leaveRequest.count({
+        where: {
+          status: "APPROVED",
+          startDate: { lte: today },
+          endDate: { gte: today },
+        },
+      }),
+    ]);
+
+  const week: OverviewDay[] = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setUTCDate(date.getUTCDate() + i);
+    const day = date.getTime();
+    let approved = 0;
+    let pending = 0;
+    for (const l of weekLeaves) {
+      if (l.startDate.getTime() <= day && day <= l.endDate.getTime()) {
+        if (l.status === "APPROVED") approved += 1;
+        else pending += 1;
+      }
+    }
+    week.push({ date, isWeekend: date.getUTCDay() === 0 || date.getUTCDay() === 6, approved, pending });
+  }
+
+  const year = { approved: 0, pending: 0, rejected: 0, daysGranted: 0 };
+  for (const row of yearLeaves) {
+    if (row.status === "APPROVED") {
+      year.approved += 1;
+      year.daysGranted += row.days;
+    } else if (row.status === "PENDING") {
+      year.pending += 1;
+    } else {
+      year.rejected += 1;
+    }
+  }
+
+  return {
+    pendingCount,
+    onLeaveToday,
+    totalEmployees: employees,
+    year,
+    week,
+  };
 }

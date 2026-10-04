@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
-import { getAllLeaves, getTeamStats } from "@/lib/leave-queries";
+import { getAllLeaves, getOverview } from "@/lib/leave-queries";
 import { AppShell } from "@/components/app-shell";
-import { StatCards } from "@/components/stat-cards";
+import { OverviewBand } from "@/components/overview-band";
 import { AdminLeaveTable } from "@/components/admin-leave-table";
 
 export default async function AdminPage() {
@@ -10,7 +10,7 @@ export default async function AdminPage() {
   if (!session) redirect("/login");
   if (session.role !== "ADMIN") redirect("/dashboard");
 
-  const [stats, leaves] = await Promise.all([getTeamStats(), getAllLeaves()]);
+  const [overview, leaves] = await Promise.all([getOverview(), getAllLeaves()]);
 
   return (
     <AppShell name={session.email} role={session.role}>
@@ -20,7 +20,7 @@ export default async function AdminPage() {
             <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
             <p className="text-sm text-zinc-500">Team leave at a glance</p>
           </div>
-          <StatCards {...stats} />
+          <OverviewBand data={overview} />
         </section>
 
         <section className="grid gap-4">
