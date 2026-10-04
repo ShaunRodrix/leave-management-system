@@ -31,15 +31,16 @@ const EMPLOYEES = [
 ];
 
 async function main() {
-  const passwordHash = await bcrypt.hash("Password@123", 10);
+  const adminHash = await bcrypt.hash("Admin@123", 10);
+  const employeeHash = await bcrypt.hash("Employee@123", 10);
 
   const admin = await db.user.upsert({
     where: { email: "admin@company.com" },
-    update: {},
+    update: { passwordHash: adminHash },
     create: {
       name: "Sean Rodrigues",
       email: "admin@company.com",
-      passwordHash,
+      passwordHash: adminHash,
       role: "ADMIN",
     },
   });
@@ -48,8 +49,8 @@ async function main() {
     EMPLOYEES.map((e) =>
       db.user.upsert({
         where: { email: e.email },
-        update: {},
-        create: { ...e, passwordHash, role: "EMPLOYEE" },
+        update: { passwordHash: employeeHash },
+        create: { ...e, passwordHash: employeeHash, role: "EMPLOYEE" },
       })
     )
   );
