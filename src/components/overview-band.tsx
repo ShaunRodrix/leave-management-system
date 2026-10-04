@@ -6,9 +6,11 @@ const WEEKDAY = new Intl.DateTimeFormat("en-GB", {
 });
 
 /* Chart geometry: viewBox units (stretched to container width via
-   preserveAspectRatio="none"; strokes stay crisp via non-scaling-stroke) */
+   preserveAspectRatio="none"; strokes stay crisp via non-scaling-stroke).
+   TOP_PAD keeps the stroke and dot inside the plot when a day hits the max. */
 const W = 700;
 const H = 100;
+const TOP_PAD = 12;
 
 /** Catmull-Rom → cubic bézier: smooth curve through every point */
 function smoothPath(pts: [number, number][]): string {
@@ -38,9 +40,9 @@ export function OverviewBand({ data }: { data: Overview }) {
   const yearTotal = Math.max(year.approved + year.pending + year.rejected, 1);
   const maxOut = Math.max(...week.map((d) => d.approved + d.pending), 1);
 
+  const yFor = (v: number) => 100 - (v / maxOut) * (100 - TOP_PAD);
   const pts = week.map(
-    (d, i) =>
-      [(i + 0.5) * (W / 7), (1 - (d.approved + d.pending) / maxOut) * H] as [number, number]
+    (d, i) => [(i + 0.5) * (W / 7), yFor(d.approved + d.pending)] as [number, number]
   );
   const line = smoothPath(pts);
   const area = `${line} L ${W},${H} L 0,${H} Z`;
@@ -137,7 +139,7 @@ export function OverviewBand({ data }: { data: Overview }) {
                 <div
                   key={d.date.toISOString()}
                   className="absolute"
-                  style={{ left: `${xPct(i)}%`, top: `${(1 - total / maxOut) * 100}%` }}
+                  style={{ left: `${xPct(i)}%`, top: `${yFor(total)}%` }}
                 >
                   <span
                     title={`${WEEKDAY.format(d.date)} ${d.date.getUTCDate()} · ${d.approved} approved, ${d.pending} pending`}
