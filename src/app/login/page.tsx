@@ -5,7 +5,7 @@
  * user is routed to their role's home page. A full assignment (not client
  * router navigation) guarantees the proxy sees the new cookie.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarDays, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // After logout, the browser's back button can restore the previous page
+  // from the back-forward cache without a server round-trip — making the
+  // logged-out dashboard appear alive. Force a real navigation so the
+  // proxy re-checks the (cleared) session and bounces the user to login.
+  useEffect(() => {
+    function onPageShow(e: PageTransitionEvent) {
+      if (e.persisted) window.location.reload();
+    }
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
