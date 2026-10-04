@@ -22,17 +22,37 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { countDays, type LeaveBalance, type LeaveType } from "@/lib/leave";
+
+const TYPE_LABELS: Record<LeaveType, string> = {
+  CASUAL: "Casual",
+  SICK: "Sick",
+  EARNED: "Earned",
+};
+const LEAVE_TYPES = Object.keys(TYPE_LABELS) as LeaveType[];
 
 /** Today's date in YYYY-MM-DD (UTC) — used as the date input's minimum */
 const todayIso = new Date().toISOString().slice(0, 10);
 
-export function ApplyLeaveForm() {
+export function ApplyLeaveForm({
+  balances,
+}: {
+  balances: Record<LeaveType, LeaveBalance>;
+}) {
   const router = useRouter();
-  const [type, setType] = useState<string>("CASUAL");
+  const [type, setType] = useState<LeaveType>("CASUAL");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
+
+  /* Live consequences: how many days this request uses, and what remains after */
+  const days =
+    startDate && endDate
+      ? countDays(new Date(startDate), new Date(endDate))
+      : 0;
+  const selectedBalance = balances[type];
+  const after = days > 0 ? selectedBalance.remaining - days : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -72,14 +92,16 @@ export function ApplyLeaveForm() {
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="type">Leave type</Label>
-            <Select value={type} onValueChange={(v) => setType(v ?? "CASUAL")}>
+            <Select value={type} onValueChange={(v) => setType((v as LeaveType) ?? "CASUAL")}>
               <SelectTrigger id="type" className="w-full">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="CASUAL">Casual</SelectItem>
-                <SelectItem value="SICK">Sick</SelectItem>
-                <SelectItem value="EARNED">Earned</SelectItem>
+                {LEAVE_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {TYPE_LABELS[t]} · {balances[t].remaining} of {balances[t].entitlement} left
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -108,6 +130,16 @@ export function ApplyLeaveForm() {
               />
             </div>
           </div>
+          {days > 0 && (
+            <p className="text-xs text-zinc-500">
+              {days} day{days === 1 ? "" : "s"}
+              {after !== null && after < 0 && (
+                <span className="font-medium text-amber-600">
+                  {" "}· more than your {selectedBalance.remaining} remaining
+                </span>
+              )}
+            </p>
+          )}
 
           <div className="grid gap-2">
             <Label htmlFor="reason">Reason</Label>
