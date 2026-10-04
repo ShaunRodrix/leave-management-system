@@ -17,7 +17,7 @@ export function LogoutButton() {
       variant="ghost"
       size="sm"
       onClick={logout}
-      className="text-white/70 hover:bg-red-500/10 hover:text-red-400"
+      className="text-zinc-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
     >
       <LogOut className="size-4" />
       Log out
