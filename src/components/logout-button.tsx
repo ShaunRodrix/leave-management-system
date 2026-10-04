@@ -9,8 +9,10 @@ export function LogoutButton() {
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    // Full navigation so the proxy re-evaluates the cleared cookie
-    window.location.assign("/login");
+    // replace(), not assign(): swaps the current history entry (dashboard)
+    // for /login, so browser Back has no authenticated page to restore —
+    // covering both the router cache and the back-forward cache.
+    window.location.replace("/login");
   }
 
   return (
