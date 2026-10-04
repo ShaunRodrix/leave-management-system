@@ -64,7 +64,7 @@ export function OverviewBand({ data }: { data: Overview }) {
             {year.approved} approved · {year.pending} pending · {year.rejected} rejected
           </p>
           <p className="mt-0.5 text-xs font-medium text-zinc-700">
-            {year.daysGranted} leave days granted
+            {year.daysGranted} leave days taken
           </p>
         </div>
       </div>
