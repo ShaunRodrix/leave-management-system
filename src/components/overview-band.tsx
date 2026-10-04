@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Overview } from "@/lib/leave-queries";
 
 const WEEKDAY = new Intl.DateTimeFormat("en-GB", {
@@ -122,14 +123,16 @@ export function OverviewBand({ data }: { data: Overview }) {
                   <stop offset="100%" stopColor="#18181b" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path d={area} fill="url(#ov-area)" />
+              <path className="ov-area" d={area} fill="url(#ov-area)" />
               <path
+                className="ov-line"
                 d={line}
                 fill="none"
                 stroke="#18181b"
                 strokeWidth="2"
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
+                pathLength={100}
               />
             </svg>
 
@@ -138,13 +141,19 @@ export function OverviewBand({ data }: { data: Overview }) {
               return (
                 <div
                   key={d.date.toISOString()}
-                  className="absolute"
-                  style={{ left: `${xPct(i)}%`, top: `${yFor(total)}%` }}
+                  className="absolute ov-pt"
+                  style={
+                    {
+                      left: `${xPct(i)}%`,
+                      top: `${yFor(total)}%`,
+                      "--rd": `${0.75 + i * 0.06}s`,
+                    } as CSSProperties
+                  }
                 >
                   <span
                     title={`${WEEKDAY.format(d.date)} ${d.date.getUTCDate()} · ${d.approved} approved, ${d.pending} pending`}
                     className={`absolute left-0 top-0 block h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm ${
-                      d.pending > 0 ? "bg-amber-400" : "bg-zinc-900"
+                      d.pending > 0 ? "ov-pulse bg-amber-400" : "bg-zinc-900"
                     }`}
                   />
                   <span

@@ -28,18 +28,22 @@ export default async function DashboardPage() {
     <AppShell name={session.email} role={session.role}>
       <div className="grid gap-8">
         <section className="grid gap-4">
-          <div>
+          <div className="pop d0">
             <h1 className="text-xl font-semibold tracking-tight">Your leave</h1>
             <p className="text-sm text-zinc-500">
               Apply for time off and track your requests
             </p>
           </div>
-          <BalanceCards balances={balances} pending={pending} />
+          <div className="pop d1">
+            <BalanceCards balances={balances} pending={pending} />
+          </div>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[380px_1fr]">
-          <ApplyLeaveForm balances={balances} />
-          <div className="grid gap-4 lg:grid-rows-[auto_1fr]">
+          <div className="pop d2">
+            <ApplyLeaveForm balances={balances} />
+          </div>
+          <div className="pop d3 grid gap-4 lg:grid-rows-[auto_1fr]">
             <h2 className="text-base font-semibold tracking-tight">
               Your applications
             </h2>
