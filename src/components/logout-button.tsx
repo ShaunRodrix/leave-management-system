@@ -1,12 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function LogoutButton() {
-  const router = useRouter();
-
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     // replace(), not assign(): swaps the current history entry (dashboard)
@@ -16,7 +13,12 @@ export function LogoutButton() {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={logout} className="text-zinc-600">
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={logout}
+      className="text-white/70 hover:bg-red-500/10 hover:text-red-400"
+    >
       <LogOut className="size-4" />
       Log out
     </Button>
