@@ -4,8 +4,10 @@ A full-stack leave management application for small teams: employees apply for
 leave and track their balances, admins review requests with a live team
 overview.
 
-**Live deployment:** https://leave-management-system.vercel.app _(replace with
-your final Vercel URL after the first deploy)_
+**Live deployment:** https://leave-management-system-y4p1.vercel.app
+
+Demo accounts: `admin@company.com` / `Admin@123` (admin) and
+`shaun@company.com` / `Shaun@1234` (employee) — seeded and ready.
 
 ## Features
 
