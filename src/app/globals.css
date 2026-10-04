@@ -129,3 +129,141 @@
     @apply font-sans;
   }
 }
+
+/* ===== Login page: dark brand panel + "Escape Flight" illustration =====
+   Motion only — layout lives in Tailwind classes on the page. */
+.login-panel {
+  background: radial-gradient(110% 90% at 75% 10%, #10101c 0%, #0a0a12 55%, #08080e 100%);
+}
+.login-glow {
+  background: radial-gradient(42% 34% at 50% 52%, rgba(255, 255, 255, 0.055), transparent 70%);
+}
+.login-dots {
+  background-image: radial-gradient(rgba(9, 9, 11, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@keyframes rise-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: rise-in 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  animation-delay: var(--rd, 0s);
+}
+
+/* escape flight loops */
+@keyframes ef-dash {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+@keyframes ef-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+@keyframes ef-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ef-drift-a {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(14px);
+  }
+}
+@keyframes ef-drift-b {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-12px);
+  }
+}
+@keyframes ef-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+@keyframes ef-check-draw {
+  0% {
+    stroke-dashoffset: 20;
+    opacity: 0;
+  }
+  6% {
+    stroke-dashoffset: 20;
+    opacity: 1;
+  }
+  16%,
+  82% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  92%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+.ef-trail {
+  animation: ef-dash 3s linear infinite;
+}
+.ef-plane {
+  animation: ef-bob 2.6s ease-in-out infinite;
+}
+.ef-rays {
+  animation: ef-spin 40s linear infinite;
+  transform-origin: 76px 46px;
+}
+.ef-cloud-a {
+  animation: ef-drift-a 7s ease-in-out infinite;
+}
+.ef-cloud-b {
+  animation: ef-drift-b 9s ease-in-out infinite;
+}
+.ef-star {
+  animation: ef-twinkle 2s ease-in-out infinite;
+}
+.ef-check {
+  stroke-dasharray: 20;
+  animation: ef-check-draw 4.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .ef-trail,
+  .ef-plane,
+  .ef-rays,
+  .ef-cloud-a,
+  .ef-cloud-b,
+  .ef-star,
+  .ef-check {
+    animation: none;
+  }
+  .rise {
+    opacity: 1;
+    transform: none;
+  }
+  .ef-check {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
