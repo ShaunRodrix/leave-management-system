@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/status-badge";
-import { formatDateRange, formatFull } from "@/lib/format";
+import { formatDateRange } from "@/lib/format";
 
 type AdminLeave = {
   id: number;
@@ -39,6 +39,17 @@ type AdminLeave = {
 
 const FILTERS = ["ALL", "PENDING", "APPROVED", "REJECTED"] as const;
 
+/** "starts today" / "in 3 days" / "already started" — decision context for pending rows */
+function startLabel(startDate: Date | string): string {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const diff = Math.round((new Date(startDate).getTime() - today.getTime()) / 86_400_000);
+  if (diff < 0) return "already started";
+  if (diff === 0) return "starts today";
+  if (diff === 1) return "starts tomorrow";
+  return `starts in ${diff} days`;
+}
+
 export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("ALL");
@@ -46,6 +57,13 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
 
   const visible =
     filter === "ALL" ? leaves : leaves.filter((l) => l.status === filter);
+
+  const counts = Object.fromEntries(
+    FILTERS.map((f) => [
+      f,
+      f === "ALL" ? leaves.length : leaves.filter((l) => l.status === f).length,
+    ])
+  ) as Record<(typeof FILTERS)[number], number>;
 
   async function review(id: number, action: "APPROVED" | "REJECTED") {
     setBusyId(id);
@@ -76,6 +94,13 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
           {FILTERS.map((f) => (
             <TabsTrigger key={f} value={f}>
               {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+              <span
+                className={`ml-1 text-xs tabular-nums ${
+                  f === "PENDING" && counts[f] > 0 ? "font-medium text-amber-600" : "text-zinc-400"
+                }`}
+              >
+                {counts[f]}
+              </span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -96,7 +121,7 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
                 <TableHead className="text-center">Days</TableHead>
                 <TableHead>Reason</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -111,6 +136,11 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
                     {formatDateRange(leave.startDate, leave.endDate)}
+                    {leave.status === "PENDING" && (
+                      <span className="mt-0.5 inline-block rounded-md border border-amber-100 bg-amber-50 px-1.5 py-0.5 text-[10.5px] font-medium text-amber-700">
+                        {startLabel(leave.startDate)}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell className="text-center">{leave.days}</TableCell>
                   <TableCell className="max-w-52">
@@ -136,8 +166,8 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
                     <StatusBadge status={leave.status} />
                   </TableCell>
                   <TableCell className="text-right">
-                    {leave.status === "PENDING" ? (
-                      <div className="flex justify-end gap-2">
+                    {leave.status === "PENDING" && (
+                      <div className="flex justify-start gap-2">
                         <Button
                           size="sm"
                           onClick={() => review(leave.id, "APPROVED")}
@@ -160,8 +190,6 @@ export function AdminLeaveTable({ leaves }: { leaves: AdminLeave[] }) {
                           Reject
                         </Button>
                       </div>
-                    ) : (
-                      <span className="text-xs text-zinc-400">Reviewed</span>
                     )}
                   </TableCell>
                 </TableRow>
