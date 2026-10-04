@@ -1,9 +1,9 @@
 /**
- * Database seed: 1 admin, 4 employees, ~15 leave requests across all
+ * Database seed: 1 admin, 5 employees, ~15 leave requests across all
  * statuses and types. Dates are relative to "today" so demo data always
  * looks live. Idempotent — safe to run multiple times.
  *
- * Run: npx prisma db seed
+ * Run: npm run db:seed
  */
 import { PrismaClient, LeaveType, LeaveStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -24,35 +24,39 @@ function countDays(start: Date, end: Date): number {
 }
 
 const EMPLOYEES = [
-  { name: "Alex Fernandes", email: "alex@company.com" },
-  { name: "Priya Sharma", email: "priya@company.com" },
-  { name: "Sam Mathew", email: "sam@company.com" },
-  { name: "Nina Varghese", email: "nina@company.com" },
+  { name: "Shaun", email: "shaun@company.com" },
+  { name: "Aviston", email: "aviston@company.com" },
+  { name: "Rahul", email: "rahul@company.com" },
+  { name: "Ananya", email: "ananya@company.com" },
+  { name: "Annia", email: "annia@company.com" },
 ];
 
-async function main() {
-  const adminHash = await bcrypt.hash("Admin@123", 10);
-  const employeeHash = await bcrypt.hash("Employee@123", 10);
+/** Demo password pattern: Name@1234 (capitalized first letter) */
+function demoPassword(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1) + "@1234";
+}
 
+async function main() {
   const admin = await db.user.upsert({
     where: { email: "admin@company.com" },
-    update: { passwordHash: adminHash },
+    update: { name: "Admin", passwordHash: await bcrypt.hash("Admin@123", 10) },
     create: {
-      name: "Sean Rodrigues",
+      name: "Admin",
       email: "admin@company.com",
-      passwordHash: adminHash,
+      passwordHash: await bcrypt.hash("Admin@123", 10),
       role: "ADMIN",
     },
   });
 
   const employees = await Promise.all(
-    EMPLOYEES.map((e) =>
-      db.user.upsert({
+    EMPLOYEES.map((e) => {
+      const passwordHash = bcrypt.hashSync(demoPassword(e.name), 10);
+      return db.user.upsert({
         where: { email: e.email },
-        update: { passwordHash: employeeHash },
-        create: { ...e, passwordHash: employeeHash, role: "EMPLOYEE" },
-      })
-    )
+        update: { name: e.name, passwordHash },
+        create: { ...e, passwordHash, role: "EMPLOYEE" },
+      });
+    })
   );
 
   // Skip leave creation if already seeded
@@ -61,7 +65,7 @@ async function main() {
     return;
   }
 
-  const [alex, priya, sam, nina] = employees;
+  const [shaun, aviston, rahul, ananya, annia] = employees;
 
   type Row = {
     userId: number;
@@ -73,28 +77,30 @@ async function main() {
   };
 
   const rows: Row[] = [
-    // Alex — approved past leave, currently on approved leave, one pending
-    { userId: alex.id, type: "CASUAL", start: -20, end: -18, status: "APPROVED", reason: "Family function out of town" },
-    { userId: alex.id, type: "SICK", start: 0, end: 1, status: "APPROVED", reason: "Fever and cold" },
-    { userId: alex.id, type: "EARNED", start: 14, end: 18, reason: "Vacation trip planned with family" },
+    // Shaun — approved past leave, currently on approved leave, one pending
+    { userId: shaun.id, type: "CASUAL", start: -20, end: -18, status: "APPROVED", reason: "Family function out of town" },
+    { userId: shaun.id, type: "SICK", start: 0, end: 1, status: "APPROVED", reason: "Fever and cold" },
+    { userId: shaun.id, type: "EARNED", start: 14, end: 18, reason: "Vacation trip planned with family" },
 
-    // Priya — mixed history
-    { userId: priya.id, type: "SICK", start: -9, end: -9, status: "APPROVED", reason: "Migraine" },
-    { userId: priya.id, type: "CASUAL", start: -4, end: -3, status: "REJECTED", reason: "Personal errand" },
-    { userId: priya.id, type: "CASUAL", start: 6, end: 6, reason: "Bank paperwork" },
-    { userId: priya.id, type: "EARNED", start: 30, end: 34, reason: "Wedding in the family" },
+    // Aviston — mixed history
+    { userId: aviston.id, type: "SICK", start: -9, end: -9, status: "APPROVED", reason: "Migraine" },
+    { userId: aviston.id, type: "CASUAL", start: -4, end: -3, status: "REJECTED", reason: "Personal errand" },
+    { userId: aviston.id, type: "CASUAL", start: 6, end: 6, reason: "Bank paperwork" },
+    { userId: aviston.id, type: "EARNED", start: 30, end: 34, reason: "Wedding in the family" },
 
-    // Sam — heavy pending queue for the admin dashboard
-    { userId: sam.id, type: "CASUAL", start: 2, end: 3, reason: "House shifting" },
-    { userId: sam.id, type: "SICK", start: -15, end: -14, status: "APPROVED", reason: "Food poisoning" },
-    { userId: sam.id, type: "EARNED", start: 21, end: 25, reason: "Annual vacation" },
+    // Rahul — pending queue for the admin dashboard
+    { userId: rahul.id, type: "CASUAL", start: 2, end: 3, reason: "House shifting" },
+    { userId: rahul.id, type: "SICK", start: -15, end: -14, status: "APPROVED", reason: "Food poisoning" },
+    { userId: rahul.id, type: "EARNED", start: 21, end: 25, reason: "Annual vacation" },
 
-    // Nina — mostly approved, one rejected
-    { userId: nina.id, type: "EARNED", start: -32, end: -28, status: "APPROVED", reason: "Travel abroad" },
-    { userId: nina.id, type: "SICK", start: 4, end: 5, reason: "Dental surgery recovery" },
-    { userId: nina.id, type: "CASUAL", start: -2, end: -1, status: "APPROVED", reason: "Sister's graduation" },
-    { userId: nina.id, type: "CASUAL", start: 9, end: 10, status: "REJECTED", reason: "Weekend trip" },
-    { userId: priya.id, type: "EARNED", start: -45, end: -43, status: "APPROVED", reason: "Personal" },
+    // Ananya — mostly approved, one pending
+    { userId: ananya.id, type: "EARNED", start: -32, end: -28, status: "APPROVED", reason: "Travel abroad" },
+    { userId: ananya.id, type: "SICK", start: 4, end: 5, reason: "Dental surgery recovery" },
+    { userId: ananya.id, type: "CASUAL", start: -2, end: -1, status: "APPROVED", reason: "Sister's graduation" },
+
+    // Annia
+    { userId: annia.id, type: "CASUAL", start: 9, end: 10, status: "REJECTED", reason: "Weekend trip" },
+    { userId: annia.id, type: "EARNED", start: -45, end: -43, status: "APPROVED", reason: "Personal" },
   ];
 
   await db.leaveRequest.createMany({

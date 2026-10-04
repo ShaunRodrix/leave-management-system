@@ -121,10 +121,10 @@ export default function LoginPage() {
             </button>
             <button
               type="button"
-              onClick={() => fillDemo("alex@company.com", "Employee@123")}
+              onClick={() => fillDemo("shaun@company.com", "Shaun@1234")}
               className="text-left hover:text-zinc-900"
             >
-              Employee — alex@company.com / Employee@123
+              Employee — shaun@company.com / Shaun@1234
             </button>
           </div>
         </div>
